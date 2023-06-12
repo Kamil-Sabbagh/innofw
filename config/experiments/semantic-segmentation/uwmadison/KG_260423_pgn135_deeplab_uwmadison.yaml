@@ -15,6 +15,7 @@ models:
   classes: 4
   encoder_name: resnet34
 
+
 optimizers:
   lr: 0.004313519324382217
 
@@ -32,10 +33,12 @@ batch_size: 128
 accelerator: gpu
 devices: 1
 override hydra/job_logging: stdout
+initializations: "xavier"  # or "he", or "xavier"
+
 
 wandb:
   enable: True
   project: uw_madison
-  entity: "k-galliamov"
+  entity: "kamil-sabbagh"
   job_type: training
 

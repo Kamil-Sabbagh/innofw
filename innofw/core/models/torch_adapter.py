@@ -77,6 +77,8 @@ class TorchAdapter(BaseModelAdapter):
         *args,
         **kwargs,
     ):
+        init_method = kwargs.pop("init_method", None)
+
         super().__init__(model, log_dir, TorchCheckpointHandler())
         self.metrics = callbacks or []
         self.callbacks = []
@@ -89,10 +91,14 @@ class TorchAdapter(BaseModelAdapter):
         self.ckpt_path = None
 
         # initialize model weights with function
-
         if initializations is not None:
             LOGGER.info("initializing the model with function")
-            initializations.init_weights(model)
+            # initializations.init_weights(model)
+
+            if init_method == "xavier":
+                self.xavier_init_weights(model)
+            elif init_method == "he":
+                self.he_init_weights(model)
 
         objects = {
             "lightning_module": None,
@@ -145,6 +151,16 @@ class TorchAdapter(BaseModelAdapter):
 
     # def resume_checkpoint(self, ckpt_path):
     #     self.ckpt_path = ckpt_path
+
+    def xavier_init_weights(self, model):
+        for m in model.modules():
+            if isinstance(m, (torch.nn.Conv2d, torch.nn.Linear)):
+                torch.nn.init.xavier_uniform_(m.weight)
+
+    def he_init_weights(self, model):
+        for m in model.modules():
+            if isinstance(m, (torch.nn.Conv2d, torch.nn.Linear)):
+                torch.nn.init.kaiming_uniform_(m.weight)
 
     def _predict(self, x):
         x.setup(Stages.predict)
@@ -221,4 +237,3 @@ class TorchAdapter(BaseModelAdapter):
     #     mode="max",
     #     every_n_epochs=5,
     # )
-    
